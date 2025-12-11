@@ -1,0 +1,5 @@
+{
+  "name": "AI Skin-Health Diagnostician",
+  "description": "Upload an image of a skin condition to receive an AI-powered diagnosis and a personalized, step-by-step treatment plan with visual healing progression. This tool is for informational purposes only and does not substitute professional medical advice.",
+  "requestFramePermissions": []
+}

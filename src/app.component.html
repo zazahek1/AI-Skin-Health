@@ -1,0 +1,189 @@
+
+<div class="min-h-screen bg-slate-100 text-slate-800">
+  <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <header class="text-center mb-10">
+      <img src="https://lh3.googleusercontent.com/d/1bURystLDhH1GjgNsRCmOoEWWlxXenNgU" alt="App Logo" class="mx-auto h-20 w-20 mb-4 rounded-full shadow-lg bg-white p-1">
+      <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">AI Skin-Health Diagnostician</h1>
+      <p class="text-md text-slate-500 mt-2">
+        Chuyên gia chẩn đoán sức khỏe da liễu bằng AI
+      </p>
+      <p class="text-xs text-amber-800 bg-amber-100 rounded-lg p-3 mt-6 max-w-3xl mx-auto border border-amber-200">
+        <strong>Disclaimer:</strong> This tool provides an AI-generated analysis and is not a substitute for professional medical advice. Always consult a qualified healthcare provider for any health concerns.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <!-- Left Column: Input & Healing Preview -->
+      <div class="space-y-8">
+        <div class="bg-white p-6 rounded-xl shadow-lg transition-all">
+          <h2 class="text-2xl font-semibold text-slate-800 mb-1 flex items-center">
+             <span class="bg-sky-500 text-white rounded-full h-8 w-8 text-lg flex items-center justify-center mr-3">1</span>
+            Upload Image / Tải ảnh lên
+          </h2>
+          <p class="text-slate-500 text-sm mb-4 ml-11">Provide an image of the skin condition for analysis.</p>
+          
+          @if (!uploadedImage()) {
+            <div 
+              (dragover)="handleDragOver($event)"
+              (dragleave)="handleDragLeave($event)"
+              (drop)="handleDrop($event)"
+              [class.bg-sky-50]="dragOver()"
+              [class.border-sky-400]="dragOver()"
+              class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-sky-500 transition-colors duration-200"
+              (click)="fileInput.click()">
+              
+              <input type="file" (change)="handleFileSelect($event)" accept="image/png, image/jpeg" class="hidden" #fileInput id="fileInput">
+              
+              <div class="flex flex-col items-center text-slate-500">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-slate-400 mb-2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                </svg>
+                <p class="mt-2 text-sm">
+                  <span class="font-semibold text-sky-600">Click to upload</span> or drag and drop
+                </p>
+                <p class="text-xs text-slate-400 mt-1">PNG or JPG</p>
+            </div>
+            </div>
+          } @else {
+            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                <div class="flex items-center space-x-4">
+                    <img [src]="uploadedImage()" alt="Uploaded skin condition" class="h-16 w-16 rounded-lg shadow-sm object-cover">
+                    <div class="flex-grow">
+                        <p class="font-semibold text-slate-700 truncate">{{ uploadedFileName() }}</p>
+                        <p class="text-xs text-slate-500">Image ready for analysis</p>
+                    </div>
+                    <button (click)="removeImage()" class="p-2 rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button (click)="analyzeImage()" [disabled]="isLoading()" class="mt-4 w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-700 disabled:bg-slate-400 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+              @if (isLoading()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Analyzing... / Đang phân tích...</span>
+              } @else {
+                <span>Analyze Skin Condition</span>
+              }
+            </button>
+          }
+        </div>
+        
+        @if (fullAnalysis(); as analysis) {
+          <div class="bg-white p-6 rounded-xl shadow-lg transition-all animate-fade-in">
+            <h3 class="text-xl font-semibold text-slate-800 mb-4">Healing Progression / Quá trình hồi phục</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              @for (stepImage of analysis.healingImages; track $index) {
+                <div class="text-center group">
+                  <img [src]="'data:image/jpeg;base64,' + stepImage" alt="Healing step {{ $index + 1 }}" class="rounded-lg shadow-sm aspect-square object-cover border-2 border-transparent group-hover:border-sky-500 transition-all duration-200 transform group-hover:scale-105">
+                  <p class="text-sm font-medium text-slate-600 mt-2">Step {{ $index + 1 }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Right Column: Results -->
+      <div class="bg-white p-6 rounded-xl shadow-lg transition-all min-h-[40rem]">
+        <h2 class="text-2xl font-semibold text-slate-800 mb-1 flex items-center">
+            <span class="bg-slate-800 text-white rounded-full h-8 w-8 text-lg flex items-center justify-center mr-3">2</span>
+            Analysis Results / Kết quả phân tích
+        </h2>
+        <p class="text-slate-500 text-sm mb-6 ml-11">AI-powered diagnosis and recommended treatment plan.</p>
+        
+        @if (isLoading()) {
+            <div class="space-y-6 animate-pulse">
+                <div class="space-y-2">
+                    <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div class="h-8 bg-slate-300 rounded w-1/2"></div>
+                </div>
+                <div class="space-y-2">
+                    <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div class="h-16 bg-slate-200 rounded w-full"></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                    @for (item of [1, 2, 3]; track item) {
+                        <div class="flex items-start space-x-4">
+                            <div class="h-10 w-10 bg-slate-300 rounded-full"></div>
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-4 bg-slate-200 rounded w-5/6"></div>
+                                <div class="h-3 bg-slate-200 rounded w-1/3"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        } @else if (error(); as errorMessage) {
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+              <p class="font-bold">An Error Occurred</p>
+              <p>{{ errorMessage }}</p>
+            </div>
+        } @else if (fullAnalysis(); as analysis) {
+            <div class="space-y-6 animate-fade-in">
+                <div>
+                  <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Condition / Tình trạng</h3>
+                  <p class="text-3xl font-bold text-sky-700 mt-1">{{ analysis.diagnosis.condition }}</p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Description / Mô tả</h3>
+                  <p class="text-slate-600 mt-2 text-base leading-relaxed">{{ analysis.diagnosis.description }}</p>
+                </div>
+                <div>
+                  <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Recommended Treatment Plan / Kế hoạch điều trị</h3>
+                  <div class="mt-3 flow-root">
+                    <ul class="-mb-8">
+                      @for (step of analysis.diagnosis.treatmentPlan; track step.step; let isLast = $last) {
+                        <li>
+                          <div class="relative pb-8">
+                            @if(!isLast) {
+                              <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200" aria-hidden="true"></span>
+                            }
+                            <div class="relative flex space-x-3 items-start">
+                              <div>
+                                <span class="h-8 w-8 rounded-full bg-sky-600 flex items-center justify-center ring-8 ring-white text-white font-bold">
+                                  {{ step.step }}
+                                </span>
+                              </div>
+                              <div class="min-w-0 flex-1 pt-1.5">
+                                <p class="font-semibold text-slate-800">{{ step.description }}</p>
+                                <p class="text-sm text-slate-500 mt-1">Duration: {{ step.duration }}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+            </div>
+        } @else {
+            <div class="flex flex-col items-center justify-center h-full text-center text-slate-500 mt-10">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-24 h-24 text-slate-300">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 004.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19 14.5M12 14.5v5.25a2.25 2.25 0 002.25 2.25h3.75a2.25 2.25 0 002.25-2.25V14.5m-9 0h9" />
+              </svg>
+              <p class="mt-4 font-medium">Your analysis will appear here</p>
+              <p class="text-sm text-slate-400">Kết quả phân tích sẽ xuất hiện ở đây</p>
+            </div>
+        }
+      </div>
+    </div>
+  </main>
+  <footer class="text-center py-8 mt-8">
+    <p class="text-sm text-slate-500">&copy; 2024 AI Skin-Health Diagnostician. All Rights Reserved.</p>
+  </footer>
+</div>
+<style>
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
